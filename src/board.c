@@ -128,4 +128,152 @@ int isValidCell(char file, int rank){
 }
 
 int isValidMove(Board board, char oldFile, int oldRank, char newFile, int newRank){
+	int i, j;
+	Piece *attacker = NULL, *victim = NULL;
+	for(i=0;i<32;i++){
+		if(board.pieces[i].File == oldFile && board.pieces[i].Rank == oldRank){
+			attacker = board.pieces + i;
+			continue;
+		}
+		if(board.pieces[i].File == newFile && board.pieces[i].Rank == newRank){
+			victim = board.pieces + i;
+			continue;
+		}
+	}
+	if(attacker == NULL)
+		return 0;
+	if(attacker->Color != board.Turn || (victim != NULL && attacker->Color == victim->Color)){
+		return 0;
+	}
+	int rankDiff, fileDiff, rankInc, fileInc, k;
+	switch(attacker->Type){
+		case pawn:
+			if(victim==NULL && oldFile == newFile){
+				if(attacker->Color == white && newRank == oldRank + 1){
+					return 1;
+				} else if (attacker->Color == black && newRank == oldRank - 1){
+					return 1;
+				}	
+				if(attacker->Color == white && oldRank == 2 && newRank == 4){
+					for(i=0;i<32;i++){
+						if(board.pieces[i].File == oldFile && board.pieces[i].Rank == 3){
+							return 0;
+						}
+					}
+					return 1;
+				} else if (attacker->Color == black && oldRank == 7 && newRank==5){
+					for(i=0;i<32;i++){
+						if(board.pieces[i].File == oldFile && board.pieces[i].Rank == 6){
+							return 0;
+						}
+					}
+					return 1;
+				}
+			} else if(victim != NULL && (newFile == oldFile-1 || newFile == oldFile+1)){
+				if(attacker->Color == white && newRank == oldRank + 1){
+					return 1;
+				} else if (attacker->Color == black && newRank == oldRank - 1){
+					return 1;
+				}
+			}
+			//TODO Add rules for En Passant and Pawn Promotion
+			return 0;
+			break;
+		case knight:
+			rankDiff = (oldRank>newRank)? (oldRank-newRank): (newRank - oldRank);
+			fileDiff = (oldFile>newFile)? (oldFile-newFile): (newFile - oldFile);
+			if((rankDiff == 1 && fileDiff == 2)||(rankDiff == 2 && fileDiff == 1)){
+				return 1;
+			}
+			return 0;
+			break;
+		case bishop:
+			rankDiff = (oldRank>newRank)? (oldRank-newRank): (newRank - oldRank);
+			fileDiff = (oldFile>newFile)? (oldFile-newFile): (newFile - oldFile);
+			if(rankDiff != fileDiff){
+				return 0;
+			}
+			rankInc = (oldRank>newRank)? -1: 1;
+			fileInc = (oldFile>newFile)? -1: 1;
+			for(i=oldRank+rankInc,j=oldFile+fileInc;i!=newRank&&j!=newFile;i+=rankInc,j+=fileInc){
+				for(k=0;k<32;k++){
+					if(board.pieces[k].File == j && board.pieces[k].Rank == i)
+						return 0;
+				}
+			}
+			return 1;
+			break;
+		case rook:
+			rankDiff = (oldRank>newRank)? (oldRank-newRank): (newRank - oldRank);
+			fileDiff = (oldFile>newFile)? (oldFile-newFile): (newFile - oldFile);
+			if(rankDiff != 0 && fileDiff!=0){
+				return 0;
+			}
+			rankInc = (rankDiff==0)? 0: 1;
+			fileInc = (fileDiff==0)? 0: 1;
+			for(i=oldRank+rankInc,j=oldFile+fileInc;i!=newRank&&j!=newFile;i+=rankInc,j+=fileInc){
+				for(k=0;k<32;k++){
+					if(board.pieces[k].File == j && board.pieces[k].Rank == i)
+						return 0;
+				}
+			}
+			return 1;
+			break;
+		case queen:
+			rankDiff = (oldRank>newRank)? (oldRank-newRank): (newRank - oldRank);
+			fileDiff = (oldFile>newFile)? (oldFile-newFile): (newFile - oldFile);
+			if(rankDiff == 0 || fileDiff==0){
+				rankInc = (rankDiff==0)? 0: 1;
+				fileInc = (fileDiff==0)? 0: 1;
+				for(i=oldRank+rankInc,j=oldFile+fileInc;i!=newRank&&j!=newFile;i+=rankInc,j+=fileInc){
+					for(k=0;k<32;k++){
+						if(board.pieces[k].File == j && board.pieces[k].Rank == i)
+							return 0;
+					}
+				}
+				return 1;
+			}
+			if(rankDiff == fileDiff){
+				rankInc = (oldRank>newRank)? -1: 1;
+				fileInc = (oldFile>newFile)? -1: 1;
+				for(i=oldRank+rankInc,j=oldFile+fileInc;i!=newRank&&j!=newFile;i+=rankInc,j+=fileInc){
+					for(k=0;k<32;k++){
+						if(board.pieces[k].File == j && board.pieces[k].Rank == i)
+							return 0;
+					}
+				}
+				return 1;
+			}
+			return 0;
+			break;
+		case king:
+			rankDiff = (oldRank>newRank)? (oldRank-newRank): (newRank - oldRank);
+			fileDiff = (oldFile>newFile)? (oldFile-newFile): (newFile - oldFile);
+			if(rankDiff <= 1 && fileDiff <= 1){
+				return 1;
+			}
+			//TODO add rule for castling
+			return 0;
+			break;
+	}
+}
+
+void move(Board board, char oldFile, int oldRank, char newFile, int newRank){
+	int i;
+	Piece *attacker = NULL, *victim = NULL;
+	for(i=0;i<32;i++){
+		if(board.pieces[i].File == oldFile && board.pieces[i].Rank == oldRank){
+			attacker = &board.pieces[i];
+		}
+		if(board.pieces[i].File == newFile && board.pieces[i].Rank == newRank){
+			victim = &board.pieces[i];
+		}
+	}
+	if(victim != NULL){
+		victim->InBoard=0;
+		victim->Rank=9;
+		victim->File='z';
+	}
+	attacker->File = newFile;
+	attacker->Rank = newRank;
 }

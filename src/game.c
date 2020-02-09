@@ -41,13 +41,16 @@ void displayBoardInTerminal(Board *board){
 	Piece *currentPiece;
 	for(i=0;i<32;i++){
 		currentPiece = &board->pieces[i];
+		if(currentPiece->InBoard == 0){
+			continue;
+		}
 		if(currentPiece->Color == white){
 			switch(currentPiece->Type){
 				case pawn:
 					displayBoard[8-currentPiece->Rank][currentPiece->File - 'a'] = 'P';
 					break;
 				case knight:
-					displayBoard[8-currentPiece->Rank][currentPiece->File - 'a'] = 'K';
+					displayBoard[8-currentPiece->Rank][currentPiece->File - 'a'] = 'N';
 					break;
 				case bishop:
 					displayBoard[8-currentPiece->Rank][currentPiece->File - 'a'] = 'B';
@@ -68,7 +71,7 @@ void displayBoardInTerminal(Board *board){
 					displayBoard[8-currentPiece->Rank][currentPiece->File - 'a'] = 'p';
 					break;
 				case knight:
-					displayBoard[8-currentPiece->Rank][currentPiece->File - 'a'] = 'k';
+					displayBoard[8-currentPiece->Rank][currentPiece->File - 'a'] = 'n';
 					break;
 				case bishop:
 					displayBoard[8-currentPiece->Rank][currentPiece->File - 'a'] = 'b';
@@ -133,4 +136,6 @@ void getInputAndMove(Game *game){
 		scanf(" %c", &newFile);
 		scanf(" %d", &newRank);
 	}
+	move(game->gameBoard, oldFile, oldRank, newFile, newRank);
+	game->gameBoard.Turn = (game->gameBoard.Turn == white)? black: white;
 }

@@ -22,3 +22,5 @@ Piece getPieceByType(Board b, Color c, Type t);
 int isValidCell(char file, int rank);
 
 int isValidMove(Board b, char oldFile, int oldRank, char newFile, int newRank);
+
+void move(Board b, char oldFile, int oldRank, char newFile, int newRank);
